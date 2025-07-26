@@ -351,8 +351,8 @@ Your Diary - HeartLog
                 rgba(233, 196, 106, 0.1));
         border-radius: 15px;
         border-left: 4px solid var(--secondary);
-        display: none;
         animation: slideIn 0.5s ease;
+            
     }
 
     @keyframes slideIn {
@@ -490,82 +490,55 @@ Your Diary - HeartLog
         </div>
 
         <!-- Diary Book -->
-        <div class="diary-book">
-            <div class="diary-pages">
-                <div class="writing-area">
-                    <div class="entry-date" id="entryDate"></div>
+        <form method="POST">
+    {% csrf_token %}
+    <div class="diary-book">
+        <div class="diary-pages">
+            <div class="writing-area">
+                <div class="entry-date" id="entryDate"></div>
 
-                    <textarea class="diary-input" id="diaryText" placeholder="Dear Diary,
+                <textarea class="diary-input" id="diaryText" 
+                    placeholder="Dear Diary,
 
 What's on your mind today? Share your thoughts, feelings, dreams, or anything that matters to you. This is your safe space to express yourself freely.
 
 How are you feeling right now? What happened today that made you smile? What challenges did you face? Remember, every emotion is valid and every experience is part of your unique journey.
 
-Write as much or as little as you'd like. Your AI companion is here to listen and support you..."></textarea>
-                </div>
-            </div>
-
-            <!-- Mood Selection -->
-            <div class="mood-section">
-                <div class="mood-label">
-                    <i class="fas fa-palette"></i>
-                    How are you feeling today?
-                </div>
-                <div class="mood-options">
-                    <div class="mood-option" data-mood="happy">
-                        <span>😊</span> Happy
-                    </div>
-                    <div class="mood-option" data-mood="calm">
-                        <span>😌</span> Calm
-                    </div>
-                    <div class="mood-option" data-mood="excited">
-                        <span>🤩</span> Excited
-                    </div>
-                    <div class="mood-option" data-mood="grateful">
-                        <span>🙏</span> Grateful
-                    </div>
-                    <div class="mood-option" data-mood="thoughtful">
-                        <span>🤔</span> Thoughtful
-                    </div>
-                    <div class="mood-option" data-mood="sad">
-                        <span>😢</span> Sad
-                    </div>
-                    <div class="mood-option" data-mood="anxious">
-                        <span>😰</span> Anxious
-                    </div>
-                    <div class="mood-option" data-mood="confused">
-                        <span>😕</span> Confused
-                    </div>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="diary-actions">
-                <div class="action-left">
-                    <div class="word-count">
-                        <i class="fas fa-pencil-alt"></i>
-                        <span id="wordCount">0 words</span>
-                    </div>
-                </div>
-
-                <button class="save-btn" id="saveEntry">
-                    <i class="fas fa-heart"></i>
-                    Share with AI Companion
-                </button>
-            </div>
-
-            <!-- AI Response (Initially Hidden) -->
-            <div class="ai-response" id="aiResponse">
-                <h3>
-                    <i class="fas fa-robot"></i>
-                    Your AI Companion Responds:
-                </h3>
-                <div class="ai-message" id="aiMessage">
-                    <!-- AI response will be populated here -->
-                </div>
+Write as much or as little as you'd like. Your AI companion is here to listen and support you..."
+                    name="query"></textarea>
             </div>
         </div>
+
+        <!-- Actions -->
+        <div class="diary-actions">
+            <div class="action-left">
+                <div class="word-count">
+                    <i class="fas fa-pencil-alt"></i>
+                    <span id="wordCount">0 words</span>
+                </div>
+            </div>
+
+            <button class="save-btn" type="submit">
+                <i class="fas fa-heart"></i>
+                Share with AI Companion
+            </button>
+        </div>
+
+        <!-- AI Response -->
+        {% if response %}
+        <div class="ai-response" id="aiResponse">
+            <h3>
+                <i class="fas fa-robot"></i>
+                Your AI Companion Responds:
+            </h3>
+            <div class="ai-message" id="aiMessage">
+                {{ response }}
+            </div>
+        </div>
+        {% endif %}
     </div>
+</form>
+
 </main>
 
 <script>
@@ -615,10 +588,6 @@ Write as much or as little as you'd like. Your AI companion is here to listen an
             return;
         }
 
-        if (!selectedMood) {
-            alert('Please select how you\'re feeling today!');
-            return;
-        }
 
         // Show loading state
         const saveBtn = document.getElementById('saveEntry');
@@ -638,22 +607,7 @@ Write as much or as little as you'd like. Your AI companion is here to listen an
 
     // Show AI response (placeholder)
     function showAIResponse(text, mood) {
-        const responses = {
-            happy: "I can feel the joy radiating from your words! 😊 It's wonderful that you're experiencing such positive emotions. These moments of happiness are precious - they're like little gifts that life gives us. What specifically brought you the most joy today?",
-            calm: "There's something beautiful about the peace you're describing. 😌 Calm moments like these are so important for our well-being. It sounds like you've found a way to center yourself, which is truly admirable. How did you create this sense of tranquility?",
-            excited: "Your excitement is absolutely contagious! 🤩 I love how enthusiastic you sound. These bursts of energy and anticipation are what make life so vibrant. Hold onto this feeling - it's going to fuel amazing things ahead!",
-            grateful: "The gratitude in your words is truly touching. 🙏 When we take time to appreciate what we have, it shifts our entire perspective. Your thankful heart is a strength that will carry you through any challenges. What are you most grateful for right now?",
-            thoughtful: "I appreciate the depth of reflection in your writing. 🤔 Your thoughtful nature shows wisdom and self-awareness. These moments of contemplation are so valuable for personal growth. What insights have you discovered about yourself?",
-            sad: "I can sense the heaviness in your heart, and I want you to know that it's completely okay to feel this way. 💙 Sadness is part of the human experience, and acknowledging it takes courage. You're not alone in this feeling. What do you think might help you feel a little lighter today?",
-            anxious: "I hear the worry in your words, and I want to acknowledge how difficult anxiety can be. 🤗 Your feelings are valid, and it's brave of you to express them. Remember, anxiety often feels bigger than it actually is. Let's focus on one small step you can take today. What would feel manageable right now?",
-            confused: "It's perfectly normal to feel uncertain sometimes. 😊 Confusion often signals that we're growing and processing new experiences. Your willingness to sit with these unclear feelings shows emotional maturity. Sometimes the best thing we can do is simply acknowledge that we don't have all the answers right now, and that's okay."
-        };
 
-        const aiMessage = responses[mood] || "Thank you for sharing your thoughts with me. Your feelings are valid, and I'm here to support you on this journey. Remember, every day brings new possibilities for growth and understanding. 💕";
-
-        document.getElementById('aiMessage').textContent = aiMessage;
-        document.getElementById('aiResponse').style.display = 'block';
-        document.getElementById('aiResponse').scrollIntoView({ behavior: 'smooth' });
     }
 
     // Auto-resize textarea
